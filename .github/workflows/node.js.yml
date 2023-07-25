@@ -1,31 +1,40 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
 name: Node.js CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
+  workflow_dispatch:  # Add workflow_dispatch event trigger
+    inputs:
+      node-version:
+        description: 'Node.js version'
+        required: true
+        default: '18.x'
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [18.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        node-version: [${{ github.event.inputs.node-version }}]  # Use the input value for node-version
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm ci
-    - run: npm run build --if-present
-    - run: npm run wdio
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build --if-present
+      - run: npm run wdio
+      - name: Archive run result as a zip folder
+        run: zip -r run_result.zip path/to/your/run_result_folder  # Replace 'path/to/your/run_result_folder' with the actual path
+        if: always()  # Archive even if the previous steps fail
+      - name: Upload zip artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: run_result
+          path: run_result.zip
