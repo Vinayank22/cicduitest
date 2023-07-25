@@ -18,7 +18,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [${{ github.event.inputs.node-version }}]  # Use the input value for node-version
+        node-version: '18.x'
 
     steps:
       - uses: actions/checkout@v3
